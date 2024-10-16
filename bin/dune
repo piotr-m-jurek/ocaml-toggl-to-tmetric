@@ -1,0 +1,4 @@
+(executable
+ (public_name ocaml_toggl_to_tmetric)
+ (name main)
+ (libraries ocaml_toggl_to_tmetric))
