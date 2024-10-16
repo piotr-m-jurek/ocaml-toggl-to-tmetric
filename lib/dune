@@ -1,4 +1,4 @@
 (library
  (name ocaml_toggl_to_tmetric)
- (libraries cohttp cohttp-lwt-unix)
+ (libraries cohttp cohttp-lwt-unix yojson)
  )

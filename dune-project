@@ -19,7 +19,7 @@
  (name ocaml_toggl_to_tmetric)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune cohttp cohttp-lwt-unix)
+ (depends ocaml dune cohttp cohttp-lwt-unix yojson)
  (tags
   (topics "to describe" your project)))
 

@@ -25,34 +25,56 @@ let get_auth_headers ~token =
     ]
 ;;
 
-(*
-   {
-  "id": 123,
-  "name": "John Doe",
-  "activeAccountId": 456,
-  "dateFormat": "MM/DD/YYYY",
-  "timeFormat": "H:mm",
-  "email": "john.doe@example.com",
-  "timeZone": {
-    "currentOffset": -4
-  },
-  "accounts": [
-    {
-      "id": 456,
-      "name": "My Company",
-      "firstWeekDay": 1,
-    }
-  ]
-}
-*)
-type profile = { active_account_id : string }
+type time_zone = { current_offset : int }
+
+let time_zone_of_yojson json =
+  let open Yojson.Basic.Util in
+  { current_offset = json |> member "currentOffset" |> to_int }
+;;
+
+type account =
+  { id : int
+  ; name : string
+  ; first_week_day : int
+  }
+
+let account_of_yojson json =
+  let open Yojson.Basic.Util in
+  { id = json |> member "id" |> to_int
+  ; name = json |> member "name" |> to_string
+  ; first_week_day = json |> member "first_week_day" |> to_int
+  }
+;;
+
+type profile =
+  { active_account_id : string
+  ; name : string
+  ; email : string
+  ; time_zone : time_zone
+  ; accounts : account list
+  }
+
+let profile_of_yojson json =
+  let open Yojson.Basic.Util in
+  { active_account_id = json |> member "activeAccountId" |> to_string
+  ; name = json |> member "name" |> to_string
+  ; email = json |> member "email" |> to_string
+  ; time_zone = json |> time_zone_of_yojson
+  ; accounts = json |> member "accounts" |> to_list |> List.map account_of_yojson
+  }
+;;
 
 let fetch_profile ~token =
-  let open Lwt.Syntax in
-  let open Cohttp_lwt_unix in
-  let* resp, body = Client.get user_profile_endpoint ~headers:(get_auth_headers ~token) in
-  let* body_string = Cohttp_lwt.Body.to_string body in
-  let code = resp |> Cohttp_lwt_unix.Response.status |> Cohttp.Code.code_of_status in
-  Printf.printf "Response code %d, body %s" code body_string;
-  failwith "TODO"
+  let process =
+    let open Lwt.Syntax in
+    let open Cohttp_lwt_unix in
+    let* resp, body =
+      Client.get user_profile_endpoint ~headers:(get_auth_headers ~token)
+    in
+    let* body_string = Cohttp_lwt.Body.to_string body in
+    let code = resp |> Cohttp_lwt_unix.Response.status |> Cohttp.Code.code_of_status in
+    Printf.printf "Response code %d, body %s" code body_string;
+    Lwt.return (body_string |> Yojson.Basic.from_string |> profile_of_yojson)
+  in
+  Lwt_main.run process
 ;;

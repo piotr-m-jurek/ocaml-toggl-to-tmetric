@@ -14,6 +14,7 @@ depends: [
   "dune" {>= "3.16"}
   "cohttp"
   "cohttp-lwt-unix"
+  "yojson"
   "odoc" {with-doc}
 ]
 build: [
