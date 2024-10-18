@@ -1,25 +1,4 @@
-(* let () =
-   let _ =
-   match Ocaml_toggl_to_tmetric.Tmetric.fetch_profile () with
-   | Ok profile ->
-   Printf.printf
-   "\nwe achieved profile %s\n"
-   (Ocaml_toggl_to_tmetric.Tmetric.show_profile profile)
-   | Error e -> Printf.eprintf "\nsomething went wrong, and that's the error %s\n" e
-   in
-   ()
-   ;; *)
-(*
-   type time_entry =
-  { start_time : string [@key "startTime"]
-  ; end_time : string [@key "endTime"]
-  ; note : string
-  ; project : project
-  }
-*)
-(*
-   DEBUGGING FOR COHTTP_DEBUG=true
-*)
+(* ===DEBUGGING FOR COHTTP_DEBUG=true=== *)
 (* let reporter ppf =
   let report src level ~over k msgf =
     let k _ =
@@ -46,7 +25,8 @@ let () =
   Logs.set_level ~all:true (Some Logs.Debug)
 ;; *)
 
-let () =
+(* ===TESTING POSTING ENTRY=== *)
+(* let () =
   let entry : Ocaml_toggl_to_tmetric.Tmetric.time_entry =
     { start_time = "2024-10-18T08:00:00"
     ; end_time = "2024-10-18T16:00:00"
@@ -58,8 +38,12 @@ let () =
   match result with
   | Ok _ -> ()
   | Error e -> Printf.printf "%s" e
-;;
+;; *)
+
+let () = Lwt_main.run (Ocaml_toggl_to_tmetric.Tmetric.fetch_projects ())
+
 (*
+   TODO:
    1. get dates from env variables
    2. fetch toggl entries & projects
    3. fetch tmetric projects
