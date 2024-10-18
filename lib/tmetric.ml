@@ -45,8 +45,6 @@ type profile =
   }
 [@@deriving yojson { strict = false }, show]
 
-(* === PROFILE === *)
-
 let fetch_profile () =
   let open Lwt.Syntax in
   let open Cohttp_lwt_unix in
@@ -65,53 +63,12 @@ let fetch_profile () =
   Lwt_main.run process
 ;;
 
-(*
-   type project = { project_id : int [@key "projectId"] } [@@deriving yojson]
+type project = { project_id : int [@key "projectId"] } [@@deriving yojson]
+
 type time_entry =
   { start_time : string [@key "startTime"]
   ; end_time : string [@key "endTime"]
   ; note : string
   ; project : project
   }
-[@@deriving yojson]
-*)
-
-(*
-   {
-  "id": 210658,
-  "name": "Piotr Małecki-Jurek",
-  "activeAccountId": 14279,
-  "dateFormat": "DD/MM/YYYY",
-  "timeFormat": "H:mm",
-
-  "email": "piotr.m.jurek@tooploox.com",
-
-  "iconUrl": "https://lh3.googleusercontent.com/a/ACg8ocJ2rfF1YCRSiKXw5zE4p7RRDwQGxXxW7GFGf0b_IXkVp2t2YgBH=s96-c",
-
-  "cultureInfo": {
-    "id": "en",
-    "nativeName": "English"
-  },
-
-  "timeZone": {
-    "id": "Europe/Prague",
-    "displayName": "(UTC+01:00) Prague",
-    "winterOffset": 1.0,
-    "summerOffset": 2.0,
-    "currentOffset": 2.0
-  },
-  "accounts": [
-    {
-      "id": 14279,
-      "name": "Tooploox",
-      "firstWeekDay": 1,
-
-      "timeTracking": { "allowManualEditing": true, "allowNewTags": false, "allowNewTask": true, "allowNewProject": true, "allowNewClient": false, "requireDescription": false, "requireProject": false, "requireTags": false, "requireTask": false, "allowTeamView": false },
-
-      "activity": { "inactivityStopMinutes": 0, "captureActivityLine": true, "captureActivityLevels": false, "captureAppsAndSites": false, "captureDetails": false, "captureScreenshots": false, "blurScreenshots": false },
-
-      "role": "member"
-    }
-  ]
-}
-*)
+[@@deriving yojson { strict = false }, show]

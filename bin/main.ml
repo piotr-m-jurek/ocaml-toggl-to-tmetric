@@ -4,7 +4,7 @@ let () =
     | Ok profile ->
       Printf.printf
         "\nwe achieved profile %s\n"
-        (Ocaml_toggl_to_tmetric.Tmetric.profile profile)
+        (Ocaml_toggl_to_tmetric.Tmetric.show_profile profile)
     | Error e -> Printf.eprintf "\nsomething went wrong, and that's the error %s\n" e
   in
   ()
