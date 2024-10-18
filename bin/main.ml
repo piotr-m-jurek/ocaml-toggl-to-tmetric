@@ -1,6 +1,12 @@
 let () =
-  let profile = Ocaml_toggl_to_tmetric.Tmetric.Tmetric.fetch_profile () in
-  Printf.printf "we achieved profile %s" profile.name;
+  let _ =
+    match Ocaml_toggl_to_tmetric.Tmetric.fetch_profile () with
+    | Ok profile ->
+      Printf.printf
+        "\nwe achieved profile %s\n"
+        (Ocaml_toggl_to_tmetric.Tmetric.profile profile)
+    | Error e -> Printf.eprintf "\nsomething went wrong, and that's the error %s\n" e
+  in
   ()
 ;;
 

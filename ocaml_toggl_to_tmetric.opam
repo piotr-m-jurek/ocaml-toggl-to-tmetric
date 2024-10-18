@@ -15,6 +15,7 @@ depends: [
   "cohttp"
   "cohttp-lwt-unix"
   "yojson"
+  "ppx_deriving_yojson"
   "lwt_ssl"
   "dotenv"
   "odoc" {with-doc}
