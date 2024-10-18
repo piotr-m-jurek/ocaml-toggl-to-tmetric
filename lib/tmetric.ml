@@ -1,13 +1,18 @@
 let user_profile_endpoint = "https://app.tmetric.com/api/v3/user" |> Uri.of_string
 
 let post_entry_endpoint ~active_account_id =
-  "https://app.tmetric.com/api/accounts/" ^ active_account_id ^ "/timeentries"
+  "https://app.tmetric.com/api/v3/accounts/" ^ active_account_id ^ "/timeentries"
   |> Uri.of_string
 ;;
 
 let get_headers ~token =
   Cohttp.Header.of_list
     [ "Authorization", "Bearer " ^ token; "Accept", "application/json" ]
+;;
+
+let get_post_headers ~token =
+  get_headers ~token
+  |> fun headers -> Cohttp.Header.add headers "Content-Type" "application/json"
 ;;
 
 type env_variables =
@@ -63,12 +68,53 @@ let fetch_profile () =
   Lwt_main.run process
 ;;
 
-type project = { project_id : int [@key "projectId"] } [@@deriving yojson]
+type project =
+  { id : int
+  ; description : string
+  }
+[@@deriving yojson { strict = false }, show]
 
 type time_entry =
   { start_time : string [@key "startTime"]
   ; end_time : string [@key "endTime"]
-  ; note : string
   ; project : project
+  ; note : string
   }
 [@@deriving yojson { strict = false }, show]
+
+let post_entry (entry : time_entry) =
+  let open Lwt.Syntax in
+  let open Cohttp_lwt_unix in
+  let { account_token; account_id } = get_env_variables in
+  Printf.printf "\n\nAccount id: %s\n\n" account_id;
+  let* resp, body =
+    Client.post
+      (post_entry_endpoint ~active_account_id:account_id)
+      ~headers:(get_post_headers ~token:account_token)
+      ~body:
+        (entry
+         |> time_entry_to_yojson
+         |> Yojson.Safe.to_string
+         |> Cohttp_lwt.Body.of_string)
+  in
+  let code = resp |> Cohttp_lwt_unix.Response.status |> Cohttp.Code.code_of_status in
+  let* body = body |> Cohttp_lwt.Body.to_string in
+  Printf.printf "\nResponse code: %d\n" code;
+  Printf.printf "\n Response body: %s\n" body;
+  match code with
+  | 200 -> Lwt.return_ok "post_entry successfull"
+  | _ ->
+    entry
+    |> show_time_entry
+    |> Printf.sprintf "\nsomething went wrong with posting entry: %s\n"
+    |> Lwt.return_error
+;;
+
+let post_entries ~(entries : time_entry list) =
+  let results = Lwt_list.map_p post_entry entries |> Lwt_main.run in
+  results
+  |> List.iter (fun result ->
+    match result with
+    | Ok _ -> ()
+    | Error e -> Printf.printf "%s" e)
+;;
