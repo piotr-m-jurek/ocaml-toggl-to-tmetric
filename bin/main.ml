@@ -44,10 +44,10 @@ let () = Lwt_main.run (Ocaml_toggl_to_tmetric.Tmetric.fetch_projects ())
 
 (*
    TODO:
-   1. get dates from env variables
-   2. fetch toggl entries & projects
-   3. fetch tmetric projects
-   4. map toggl entries to tmetric (toggl projects, toggl entries)
-   5. filter out the project not belonging to tmetricProjects
-   6. push entry to tmetric(entry, tmetricToken, tmetricProjects, userId)
+   - [ ] get dates from env variables
+   - [ ] fetch toggl entries & projects
+   - [ ] map toggl entries to tmetric (toggl projects, toggl entries)
+   - [ ] filter out the project not belonging to tmetricProjects
+   - [ ] push entry to tmetric(entry, tmetricToken, tmetricProjects, userId)
+   - [x] fetch tmetric projects
 *)
