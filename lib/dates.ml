@@ -1,3 +1,5 @@
+open Core
+
 type date =
   { year : string
   ; month : string
@@ -10,7 +12,7 @@ type date_range =
   }
 
 let parse_date input_string =
-  match input_string |> String.split_on_char '-' with
+  match input_string |> String.split_on_chars ~on:[ '-' ] with
   | [ year; month; day ] -> Ok { year; month; day }
   | _ -> Error ("Wrong format, expected YYYY-MM-DD, got: " ^ input_string)
 ;;
@@ -26,13 +28,13 @@ let get_UTC_range (start_date : date) (end_date : date) =
 ;;
 
 let get_current_year () =
-  let time_now = Unix.time () in
-  let local_time = Unix.localtime time_now in
-  local_time.Unix.tm_year + 1900
+  let time_now = Core_unix.time () in
+  let local_time = Core_unix.localtime time_now in
+  local_time.Core_unix.tm_year + 1900
 ;;
 
 let get_week_day () =
-  let open Unix in
-  let week_day (tm : Unix.tm) = tm.tm_wday in
+  let open Core_unix in
+  let week_day (tm : tm) = tm.tm_wday in
   time () |> localtime |> week_day
 ;;
