@@ -11,5 +11,3 @@ module Env = struct
       raise (EnvVarNotFound msg)
   ;;
 end
-
-module Flags = struct end
