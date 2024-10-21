@@ -1,3 +1,5 @@
+open Core
+
 module Uris = struct
   let base_url = "https://app.tmetric.com/api/v3"
   let make_user_profile () = base_url ^ "/user" |> Uri.of_string
@@ -27,8 +29,8 @@ module Tmetric_env = struct
     ; account_token : string
     }
 
-  let get_account_id = Env.Env.get_env_var "TMETRIC_ACCOUNT_ID"
-  let get_account_token = Env.Env.get_env_var "TMETRIC_API_TOKEN"
+  let get_account_id = Env.get_env_var "TMETRIC_ACCOUNT_ID"
+  let get_account_token = Env.get_env_var "TMETRIC_API_TOKEN"
 end
 
 (* === PROFILE === *)
@@ -102,14 +104,10 @@ let fetch_projects () =
   let* body = body |> Cohttp_lwt.Body.to_string in
   Printf.printf "\nResponse code: %d\n" code;
   (* Printf.printf "\nResponse body: %s\n" body; *)
-  body
-  |> Yojson.Safe.from_string
-  |> Yojson.Safe.Util.to_list
-  |> List.map project_of_yojson
-  |> List.map Result.get_ok
-  |> List.map show_project
-  |> List.iter (Printf.printf "%s\n");
-  Lwt.return_unit
+  let parsed_body = body |> Yojson.Safe.from_string |> project_of_yojson in
+  match code with
+  | 200 -> Lwt.return_ok (parsed_body |> Result.ok_or_failwith)
+  | _ -> body |> Printf.sprintf "couldn't fetch projects %s" |> Lwt.return_error
 ;;
 
 type timeentry_project =
@@ -157,7 +155,7 @@ let post_time_entry (entry : time_entry) =
 let post_time_entries ~(entries : time_entry list) =
   let results = Lwt_list.map_p post_time_entry entries |> Lwt_main.run in
   results
-  |> List.iter (fun result ->
+  |> List.iter ~f:(fun result ->
     match result with
     | Ok _ -> ()
     | Error e -> Printf.printf "%s" e)
