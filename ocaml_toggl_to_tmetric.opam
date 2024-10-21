@@ -18,6 +18,7 @@ depends: [
   "ppx_deriving_yojson"
   "lwt_ssl"
   "dotenv"
+  "core"
   "odoc" {with-doc}
 ]
 build: [
