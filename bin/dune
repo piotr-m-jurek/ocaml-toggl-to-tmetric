@@ -1,6 +1,6 @@
 (executable
  (public_name ocaml_toggl_to_tmetric)
  (name main)
- (libraries ocaml_toggl_to_tmetric yojson ppx_deriving_yojson.runtime)
+ (libraries ocaml_toggl_to_tmetric yojson ppx_deriving_yojson.runtime core)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.show)))
