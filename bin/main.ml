@@ -1,3 +1,4 @@
+open Ocaml_toggl_to_tmetric
 (* ===DEBUGGING FOR COHTTP_DEBUG=true=== *)
 (* let reporter ppf =
   let report src level ~over k msgf =
@@ -40,11 +41,35 @@ let () =
   | Error e -> Printf.printf "%s" e
 ;; *)
 
-let () = Lwt_main.run (Ocaml_toggl_to_tmetric.Tmetric.fetch_projects ())
+let rec get_dates () =
+  print_newline ();
+  Printf.printf "Start Date (format DD-MM-YYYY): ";
+  let start_date = read_line () in
+  Printf.printf "End Date (format DD-MM-YYYY): ";
+  let end_date = read_line () in
+  match Dates.parse_date start_date, Dates.parse_date end_date with
+  | Ok start_date, Ok end_date -> start_date, end_date
+  | Error e1, Error e2 ->
+    Printf.printf "Expected format: DD-MM-YYYY. Got %s " (String.concat "," [ e1; e2 ]);
+    get_dates ()
+  | Ok _, Error e ->
+    Printf.printf "Expected format: DD-MM-YYYY. Got %s " e;
+    get_dates ()
+  | Error e, Ok _ ->
+    Printf.printf "Expected format: DD-MM-YYYY. Got %s " e;
+    get_dates ()
+;;
+
+let () =
+  let start_date, end_date = get_dates () in
+  let range = Dates.get_UTC_range start_date end_date in
+  Printf.printf "Start: %s, end: %s\n" range.start_date range.end_date
+;;
+(* let () = Lwt_main.run (Ocaml_toggl_to_tmetric.Tmetric.fetch_projects ()) *)
 
 (*
    TODO:
-   - [ ] get dates from env variables
+   - [x] get dates from env variables
    - [ ] fetch toggl entries & projects
    - [ ] map toggl entries to tmetric (toggl projects, toggl entries)
    - [ ] filter out the project not belonging to tmetricProjects
