@@ -1,6 +1,12 @@
 (library
  (name ocaml_toggl_to_tmetric)
- (libraries cohttp cohttp-lwt-unix lwt_ssl dotenv yojson ppx_deriving_yojson.runtime)
+ (libraries
+  cohttp
+  cohttp-lwt-unix
+  lwt_ssl
+  dotenv
+  yojson
+  ppx_deriving_yojson.runtime)
  ; replace dotenv with own implementation
- (preprocess (pps ppx_deriving_yojson ppx_deriving.show))
- )
+ (preprocess
+  (pps ppx_deriving_yojson ppx_deriving.show)))

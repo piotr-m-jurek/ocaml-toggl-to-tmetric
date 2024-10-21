@@ -1,37 +1,35 @@
 module Uris = struct
   let base_url = "https://app.tmetric.com/api/v3"
-  let get_user_profile () = base_url ^ "/user" |> Uri.of_string
+  let make_user_profile () = base_url ^ "/user" |> Uri.of_string
 
-  let get_projects ~account_id =
+  let make_get_projects ~account_id =
     base_url ^ "/accounts/" ^ account_id ^ "/timeentries/projects" |> Uri.of_string
   ;;
 
-  let post_entry ~account_id =
+  let make_post_entry ~account_id =
     base_url ^ "/accounts/" ^ account_id ^ "/timeentries" |> Uri.of_string
   ;;
 
-  let get_headers ~token =
+  let make_get_headers ~token =
     Cohttp.Header.of_list
       [ "Authorization", "Bearer " ^ token; "Accept", "application/json" ]
   ;;
 
-  let get_post_headers ~token =
-    get_headers ~token
+  let make_post_headers ~token =
+    make_get_headers ~token
     |> fun headers -> Cohttp.Header.add headers "Content-Type" "application/json"
   ;;
 end
 
-type env_variables =
-  { account_id : string
-  ; account_token : string
-  }
+module Tmetric_env = struct
+  type env_variables =
+    { account_id : string
+    ; account_token : string
+    }
 
-let get_env_variables =
-  let _ = Dotenv.export () in
-  let account_id = Env.get_env_var "TMETRIC_ACCOUNT_ID" in
-  let account_token = Env.get_env_var "TMETRIC_API_TOKEN" in
-  { account_id; account_token }
-;;
+  let get_account_id = Env.Env.get_env_var "TMETRIC_ACCOUNT_ID"
+  let get_account_token = Env.Env.get_env_var "TMETRIC_API_TOKEN"
+end
 
 (* === PROFILE === *)
 type time_zone =
@@ -60,11 +58,11 @@ let fetch_profile () =
   let open Lwt.Syntax in
   let open Cohttp_lwt_unix in
   let process =
-    let { account_token; account_id = _ } = get_env_variables in
+    let account_token = Tmetric_env.get_account_token in
     let* resp, body =
       Client.get
-        (Uris.get_user_profile ())
-        ~headers:(Uris.get_headers ~token:account_token)
+        (Uris.make_user_profile ())
+        ~headers:(Uris.make_get_headers ~token:account_token)
     in
     let* body_string = Cohttp_lwt.Body.to_string body in
     let code = resp |> Cohttp_lwt_unix.Response.status |> Cohttp.Code.code_of_status in
@@ -93,11 +91,12 @@ type project =
 let fetch_projects () =
   let open Lwt.Syntax in
   let open Cohttp_lwt_unix in
-  let { account_id; account_token } = get_env_variables in
+  let account_id = Tmetric_env.get_account_id in
+  let account_token = Tmetric_env.get_account_token in
   let* resp, body =
     Client.get
-      (Uris.get_projects ~account_id)
-      ~headers:(Uris.get_headers ~token:account_token)
+      (Uris.make_get_projects ~account_id)
+      ~headers:(Uris.make_get_headers ~token:account_token)
   in
   let code = resp |> Cohttp_lwt_unix.Response.status |> Cohttp.Code.code_of_status in
   let* body = body |> Cohttp_lwt.Body.to_string in
@@ -127,14 +126,15 @@ type time_entry =
   }
 [@@deriving yojson { strict = false }, show]
 
-let post_timeentry (entry : time_entry) =
+let post_time_entry (entry : time_entry) =
   let open Lwt.Syntax in
   let open Cohttp_lwt_unix in
-  let { account_token; account_id } = get_env_variables in
+  let account_id = Tmetric_env.get_account_id in
+  let account_token = Tmetric_env.get_account_token in
   let* resp, body =
     Client.post
-      (Uris.post_entry ~account_id)
-      ~headers:(Uris.get_post_headers ~token:account_token)
+      (Uris.make_post_entry ~account_id)
+      ~headers:(Uris.make_post_headers ~token:account_token)
       ~body:
         (entry
          |> time_entry_to_yojson
@@ -154,8 +154,8 @@ let post_timeentry (entry : time_entry) =
     |> Lwt.return_error
 ;;
 
-let post_timeentries ~(entries : time_entry list) =
-  let results = Lwt_list.map_p post_timeentry entries |> Lwt_main.run in
+let post_time_entries ~(entries : time_entry list) =
+  let results = Lwt_list.map_p post_time_entry entries |> Lwt_main.run in
   results
   |> List.iter (fun result ->
     match result with

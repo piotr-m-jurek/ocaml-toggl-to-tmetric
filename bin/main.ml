@@ -75,4 +75,7 @@ let () =
    - [ ] filter out the project not belonging to tmetricProjects
    - [ ] push entry to tmetric(entry, tmetricToken, tmetricProjects, userId)
    - [x] fetch tmetric projects
+
+   TODO:
+   - [ ] TUI - get the default dates for input? for example for the current month, so you can click
 *)
