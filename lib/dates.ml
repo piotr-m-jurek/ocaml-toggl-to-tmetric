@@ -19,10 +19,14 @@ let parse_date input_string =
 
 let get_UTC_range (start_date : date) (end_date : date) =
   let start_date =
-    Printf.sprintf "%s-%s-%sT:00:00:00Z" start_date.year start_date.month start_date.day
+    Printf.sprintf
+      "%s-%s-%sT00:00:01+00:00"
+      start_date.year
+      start_date.month
+      start_date.day
   in
   let end_date =
-    Printf.sprintf "%s-%s-%sT:23:59:99Z" end_date.year end_date.month end_date.day
+    Printf.sprintf "%s-%s-%sT23:59:59+00:00" end_date.year end_date.month end_date.day
   in
   { start_date; end_date }
 ;;
