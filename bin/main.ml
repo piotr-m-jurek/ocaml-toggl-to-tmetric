@@ -78,3 +78,8 @@ let () =
    TODO:
    - [ ] TUI - get the default dates for input? for example for the current month, so you can click
 *)
+
+(*
+   https://app.tmetric.com/api-docs/#/
+   https://engineering.toggl.com/docs/api/projects
+*)
