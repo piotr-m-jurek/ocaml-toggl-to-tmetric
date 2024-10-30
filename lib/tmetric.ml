@@ -59,21 +59,20 @@ type profile =
 let fetch_profile () =
   let open Lwt.Syntax in
   let open Cohttp_lwt_unix in
-  let process =
-    let account_token = Tmetric_env.get_account_token in
-    let* resp, body =
-      Client.get
-        (Uris.make_user_profile ())
-        ~headers:(Uris.make_get_headers ~token:account_token)
-    in
-    let* body_string = Cohttp_lwt.Body.to_string body in
-    let code = resp |> Cohttp_lwt_unix.Response.status |> Cohttp.Code.code_of_status in
-    Printf.printf "\nResponse code: %d\n" code;
-    let safe_string = body_string |> Yojson.Safe.from_string in
-    let ret_val = safe_string |> profile_of_yojson in
-    Lwt.return ret_val
+  let account_token = Tmetric_env.get_account_token in
+  let* resp, body =
+    Client.get
+      (Uris.make_user_profile ())
+      ~headers:(Uris.make_get_headers ~token:account_token)
   in
-  Lwt_main.run process
+  let* body_string = Cohttp_lwt.Body.to_string body in
+  let code = resp |> Cohttp_lwt_unix.Response.status |> Cohttp.Code.code_of_status in
+  Printf.printf "\nResponse code: %d\n" code;
+  let safe_string = body_string |> Yojson.Safe.from_string in
+  let ret_val = safe_string |> profile_of_yojson |> Result.ok_or_failwith in
+  match code with
+  | 200 -> Lwt.return_ok ret_val
+  | _ -> Lwt.return_error "failed to fetch profile"
 ;;
 
 type project_client =
@@ -90,6 +89,8 @@ type project =
   }
 [@@deriving yojson { strict = false }, show]
 
+type projects = project list [@@deriving yojson, show]
+
 let fetch_projects () =
   let open Lwt.Syntax in
   let open Cohttp_lwt_unix in
@@ -104,14 +105,14 @@ let fetch_projects () =
   let* body = body |> Cohttp_lwt.Body.to_string in
   Printf.printf "\nResponse code: %d\n" code;
   (* Printf.printf "\nResponse body: %s\n" body; *)
-  let parsed_body = body |> Yojson.Safe.from_string |> project_of_yojson in
+  let parsed_body = body |> Yojson.Safe.from_string |> projects_of_yojson in
   match code with
   | 200 -> Lwt.return_ok (parsed_body |> Result.ok_or_failwith)
   | _ -> body |> Printf.sprintf "couldn't fetch projects %s" |> Lwt.return_error
 ;;
 
 type timeentry_project =
-  { id : int
+  { project_id : int
   ; description : string
   }
 [@@deriving yojson { strict = false }, show]
@@ -153,10 +154,7 @@ let post_time_entry (entry : time_entry) =
 ;;
 
 let post_time_entries ~(entries : time_entry list) =
-  let results = Lwt_list.map_p post_time_entry entries |> Lwt_main.run in
-  results
-  |> List.iter ~f:(fun result ->
-    match result with
-    | Ok _ -> ()
-    | Error e -> Printf.printf "%s" e)
+  let open Lwt.Syntax in
+  let* results = Lwt_list.map_p post_time_entry entries in
+  results |> List.iter ~f:(Result.iter_error ~f:(Fmt.pr "%s")) |> Lwt.return
 ;;
