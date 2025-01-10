@@ -29,8 +29,15 @@ module Tmetric_env = struct
     ; account_token : string
     }
 
-  let get_account_id = Env.get_env_var "TMETRIC_ACCOUNT_ID"
-  let get_account_token = Env.get_env_var "TMETRIC_API_TOKEN"
+  let get_account_id =
+    Env.parse ();
+    Env.get_env_var "TMETRIC_ACCOUNT_ID"
+  ;;
+
+  let get_account_token =
+    Env.parse ();
+    Env.get_env_var "TMETRIC_API_TOKEN"
+  ;;
 end
 
 (* === PROFILE === *)
@@ -75,17 +82,11 @@ let fetch_profile () =
   | _ -> Lwt.return_error "failed to fetch profile"
 ;;
 
-type project_client =
-  { name : string
-  ; id : int
-  }
-[@@deriving yojson { strict = false }, show]
 
 type project =
   { id : int
   ; name : string
   ; is_billable : bool [@key "isBillable"]
-  ; client : project_client
   }
 [@@deriving yojson { strict = false }, show]
 
